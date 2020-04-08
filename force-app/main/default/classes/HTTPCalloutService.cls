@@ -233,6 +233,7 @@ public class HTTPCalloutService {
         request = new HTTPRequest();
         addHeaderParameters();
         if(String.isNotEmpty(endpointURL)) {
+            endpointURL = endpointURL.substringBefore('?');
             appendURLParameters();
             request.setEndpoint(endpointURL);
         }
