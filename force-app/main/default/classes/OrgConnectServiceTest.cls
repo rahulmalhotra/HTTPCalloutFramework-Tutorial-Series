@@ -23,18 +23,23 @@ public with sharing class OrgConnectServiceTest {
     @isTest
     public static void createAccountAndContactTest() {
         Test.startTest();
+        // * Creating Individual Mocks
         HTTPCalloutServiceMock contactMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, CONTACT_RESPONSE);
         HTTPCalloutServiceMock accountMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, ACCOUNT_RESPONSE);
         HTTPCalloutServiceMock contactQueryMock = new HTTPCalloutServiceMock(QUERY_SUCCESS_CODE, QUERY_RESPONSE);
+        // * Adding all individual mocks in single multi mock
         HTTPCalloutService destinationOrgService = new HTTPCalloutService('CustomerRubyOrg');
         HTTPCalloutServiceMultiMock multiMock = new HTTPCalloutServiceMultiMock();
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Account', accountMock);
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Contact', contactMock);
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/query?q=SELECT+Name,Account.Name+FROM+Contact+WHERE+Id=\'003D000000IqhSLIAZ\'', contactQueryMock);
+        // * Applying multi mock before calling out
         Test.setMock(HTTPCalloutMock.class, multiMock);
         Contact con = new Contact(FirstName='Test', LastName='Contact 1');
-        Boolean isSuccess = OrgConnectService.createAccountAndContact('Test Account 1', con);
-        System.assert(isSuccess, 'Return value should be true');
+        Map<String, String> returnValueMap = OrgConnectService.createAccountAndContact('Test Account 1', con);
+        // * Verifying the response
+        System.assertEquals(OrgConnectService.SUCCESS_CODE, returnValueMap.get('success'), 'Success should be ' + OrgConnectService.SUCCESS_CODE);
+        System.assertEquals(OrgConnectService.SUCCESS_MESSAGE, returnValueMap.get('message'), 'Message should be ' + OrgConnectService.SUCCESS_MESSAGE);
         Test.stopTest();
     }
 
@@ -47,12 +52,19 @@ public with sharing class OrgConnectServiceTest {
     @isTest
     public static void createAccountAndContactTestWrongResponseAccount() {
         Test.startTest();
-        HTTPCalloutServiceMock accountMock = new HTTPCalloutServiceMock(QUERY_SUCCESS_CODE, CONTACT_RESPONSE);
-        HTTPCalloutService destinationOrgService = new HTTPCalloutService('CustomerRubyOrg');
+        // * Creating Individual Account Mock
+        HTTPCalloutServiceMock accountMock = new HTTPCalloutServiceMock(QUERY_SUCCESS_CODE, ACCOUNT_RESPONSE);
+        /*
+        *   Setting up account mock only before calling out
+        *   As we'll be having error in the first request itself,
+        *   so multi-mock is not required
+        */
         Test.setMock(HTTPCalloutMock.class, accountMock);
         Contact con = new Contact(FirstName='Test', LastName='Contact 1');
-        Boolean isSuccess = OrgConnectService.createAccountAndContact('Test Account 1', con);
-        System.assert(!isSuccess, 'Return value should be false');
+        Map<String, String> returnValueMap = OrgConnectService.createAccountAndContact('Test Account 1', con);
+        // * Verifying the response
+        System.assertEquals(OrgConnectService.ERROR_CODE, returnValueMap.get('success'), 'Success should be ' + OrgConnectService.ERROR_CODE);
+        System.assertEquals(OrgConnectService.ACCOUNT_ERROR_MESSAGE, returnValueMap.get('message'), 'Message should be ' + OrgConnectService.ACCOUNT_ERROR_MESSAGE);
         Test.stopTest();
     }
 
@@ -65,16 +77,21 @@ public with sharing class OrgConnectServiceTest {
     @isTest
     public static void createAccountAndContactTestWrongResponseContact() {
         Test.startTest();
+        // * Creating Individual Mocks
         HTTPCalloutServiceMock accountMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, ACCOUNT_RESPONSE);
         HTTPCalloutServiceMock contactMock = new HTTPCalloutServiceMock(QUERY_SUCCESS_CODE, CONTACT_RESPONSE);
+        // * Adding all individual mocks in single multi mock
         HTTPCalloutService destinationOrgService = new HTTPCalloutService('CustomerRubyOrg');
         HTTPCalloutServiceMultiMock multiMock = new HTTPCalloutServiceMultiMock();
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Account', accountMock);
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Contact', contactMock);
+        // * Applying multi mock before calling out
         Test.setMock(HTTPCalloutMock.class, multiMock);
         Contact con = new Contact(FirstName='Test', LastName='Contact 1');
-        Boolean isSuccess = OrgConnectService.createAccountAndContact('Test Account 1', con);
-        System.assert(!isSuccess, 'Return value should be false');
+        Map<String, String> returnValueMap = OrgConnectService.createAccountAndContact('Test Account 1', con);
+        // * Verifying the response
+        System.assertEquals(OrgConnectService.ERROR_CODE, returnValueMap.get('success'), 'Success should be ' + OrgConnectService.ERROR_CODE);
+        System.assertEquals(OrgConnectService.CONTACT_ERROR_MESSAGE, returnValueMap.get('message'), 'Message should be ' + OrgConnectService.CONTACT_ERROR_MESSAGE);
         Test.stopTest();
     }
     /*
@@ -86,18 +103,23 @@ public with sharing class OrgConnectServiceTest {
     @isTest
     public static void createAccountAndContactTestWrongResponseQuery() {
         Test.startTest();
-        HTTPCalloutServiceMock contactMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, CONTACT_RESPONSE);
+        // * Creating Individual Mocks
         HTTPCalloutServiceMock accountMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, ACCOUNT_RESPONSE);
+        HTTPCalloutServiceMock contactMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, CONTACT_RESPONSE);
         HTTPCalloutServiceMock contactQueryMock = new HTTPCalloutServiceMock(CREATE_SUCCESS_CODE, QUERY_RESPONSE);
+        // * Adding all individual mocks in single multi mock
         HTTPCalloutService destinationOrgService = new HTTPCalloutService('CustomerRubyOrg');
         HTTPCalloutServiceMultiMock multiMock = new HTTPCalloutServiceMultiMock();
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Account', accountMock);
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/sobjects/Contact', contactMock);
         multiMock.addCalloutMock(destinationOrgService.getEndpointURL() + '/query?q=SELECT+Name,Account.Name+FROM+Contact+WHERE+Id=\'003D000000IqhSLIAZ\'', contactQueryMock);
+        // * Applying multi mock before calling out
         Test.setMock(HTTPCalloutMock.class, multiMock);
         Contact con = new Contact(FirstName='Test', LastName='Contact 1');
-        Boolean isSuccess = OrgConnectService.createAccountAndContact('Test Account 1', con);
-        System.assert(!isSuccess, 'Return value should be false');
+        Map<String, String> returnValueMap = OrgConnectService.createAccountAndContact('Test Account 1', con);
+        // * Verifying the response
+        System.assertEquals(OrgConnectService.ERROR_CODE, returnValueMap.get('success'), 'Success should be ' + OrgConnectService.ERROR_CODE);
+        System.assertEquals(OrgConnectService.CONTACT_QUERY_ERROR_MESSAGE, returnValueMap.get('message'), 'Message should be ' + OrgConnectService.CONTACT_QUERY_ERROR_MESSAGE);
         Test.stopTest();
     }
 }
